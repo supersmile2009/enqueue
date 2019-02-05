@@ -150,7 +150,7 @@ class ConsumeCommand extends Command
 
     protected function getRuntimeExtensions(InputInterface $input, OutputInterface $output): ExtensionInterface
     {
-        $extensions = [new LoggerExtension(new ConsoleLogger($output))];
+        $extensions = [];
         $extensions = array_merge($extensions, $this->getLimitsExtensions($input, $output));
 
         $driver = $this->getDriver($input->getOption('client'));
