@@ -14,6 +14,7 @@ use Enqueue\Consumption\Context\ProcessorException;
 use Enqueue\Consumption\Context\Start;
 use Enqueue\Consumption\Exception\InvalidArgumentException;
 use Enqueue\Consumption\Exception\LogicException;
+use function get_class;
 use Interop\Queue\Consumer;
 use Interop\Queue\Context as InteropContext;
 use Interop\Queue\Exception\SubscriptionConsumerNotSupportedException;
@@ -195,7 +196,7 @@ final class QueueConsumer implements QueueConsumerInterface
             if (null === $result) {
                 try {
                     $result = $processor->process($message, $this->interopContext);
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $result = $this->onProcessorException($extension, $consumer, $message, $e, $receivedAt);
                 }
             }
@@ -303,7 +304,7 @@ final class QueueConsumer implements QueueConsumerInterface
      *
      * https://github.com/symfony/symfony/blob/cbe289517470eeea27162fd2d523eb29c95f775f/src/Symfony/Component/HttpKernel/EventListener/ExceptionListener.php#L77
      */
-    private function onProcessorException(ExtensionInterface $extension, Consumer $consumer, Message $message, \Exception $exception, int $receivedAt)
+    private function onProcessorException(ExtensionInterface $extension, Consumer $consumer, Message $message, \Throwable $exception, int $receivedAt)
     {
         $processorException = new ProcessorException($this->interopContext, $consumer, $message, $exception, $receivedAt, $this->logger);
 
@@ -316,7 +317,7 @@ final class QueueConsumer implements QueueConsumerInterface
             }
 
             return $result;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $prev = $e;
             do {
                 if ($exception === $wrapper = $prev) {
@@ -324,7 +325,7 @@ final class QueueConsumer implements QueueConsumerInterface
                 }
             } while ($prev = $wrapper->getPrevious());
 
-            $prev = new \ReflectionProperty($wrapper instanceof \Exception ? \Exception::class : \Error::class, 'previous');
+            $prev = new \ReflectionProperty(get_class($wrapper), 'previous');
             $prev->setAccessible(true);
             $prev->setValue($wrapper, $exception);
 
