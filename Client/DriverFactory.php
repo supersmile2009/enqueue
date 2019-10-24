@@ -50,6 +50,7 @@ final class DriverFactory implements DriverFactoryInterface
         $protocol = $dsn->getSchemeProtocol();
 
         if ($dsn->getSchemeExtensions()) {
+            $candidates = [];
             foreach ($factories as $info) {
                 if (empty($info['requiredSchemeExtensions'])) {
                     continue;
@@ -63,6 +64,15 @@ final class DriverFactory implements DriverFactoryInterface
                 if (empty($diff)) {
                     return $info;
                 }
+
+                $candidates[count($diff)][] = $info;
+            }
+
+            if (!empty($candidates)) {
+                krsort($candidates);
+                $topCandidates = array_pop($candidates);
+
+                return array_pop($topCandidates);
             }
         }
 
